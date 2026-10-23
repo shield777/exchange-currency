@@ -498,8 +498,10 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
   function fmt(v, dec, minDec) {
     return v.toLocaleString("ko-KR", { maximumFractionDigits: dec, minimumFractionDigits: minDec == null ? 0 : minDec });
   }
-  // Amounts show up to two decimals: 5,494.51원, 15.3 -> 15.30달러, 5,000동 stays whole.
-  function fmtCur(v) {
+  // Amounts show up to two decimals: 5,494.51원, 15.3 -> 15.30달러. Currencies with no coins
+  // below one unit (동, 엔, 대만달러, 루피아) stay whole: 528,302동.
+  function fmtCur(v, c) {
+    if (c && c !== "KRW" && CUR[c].dec === 0) return fmt(Math.round(v), 0);
     if (Math.abs(v) > 0 && Math.abs(v) < 0.01) return fmt(v, 4);
     var r = Math.round(v * 100) / 100;
     return r === Math.round(r) ? fmt(r, 0) : fmt(r, 2, 2);
