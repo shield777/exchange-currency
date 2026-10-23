@@ -319,7 +319,10 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
 
-  var prefs = Object.assign({ input: "VND", amount: "100000", manual: {}, fee: 0, people: 1, tab: "calc" }, store.get("vnfx.prefs", {}));
+  var prefs = Object.assign({ input: "VND", amount: "", manual: {}, fee: 0, people: 1, tab: "calc" }, store.get("vnfx.prefs", {}));
+  // Every launch starts from 0; only settings carry over.
+  prefs.amount = "";
+  prefs.origin = null;
   if (!CUR[prefs.input]) prefs.input = "VND";
   if (!prefs.manual || typeof prefs.manual !== "object") prefs.manual = {};
 

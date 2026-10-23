@@ -1,6 +1,6 @@
 // Keeps the app itself available offline. Exchange rates are not cached here;
 // the page stores the last downloaded rates in localStorage.
-var CACHE = "vnfx-v1";
+var CACHE = "vnfx-v2";
 var SHELL = ["./", "index.html", "manifest.webmanifest", "apple-touch-icon.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", function (e) {
