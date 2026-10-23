@@ -1,7 +1,7 @@
 // Keeps the app itself available offline. Exchange rates are not cached here;
 // the page stores the last downloaded rates in localStorage.
-var CACHE = "vnfx-v7";
-var SHELL = ["./", "index.html", "manifest.webmanifest", "apple-touch-icon.png", "icon-192.png", "icon-512.png"];
+var CACHE = "vnfx-v8";
+var SHELL = ["./", "index.html", "manifest.webmanifest?v=2", "icon-180-v2.png", "icon-192-v2.png", "icon-512-v2.png"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
@@ -24,8 +24,9 @@ self.addEventListener("fetch", function (e) {
   if (!sameOrigin && !isFont) return;
 
   // Network first so updates arrive when online; fall back to cache when offline.
+  // Own files skip the browser's 10-minute HTTP cache so a new version shows on the next open.
   e.respondWith(
-    fetch(req).then(function (res) {
+    fetch(sameOrigin ? new Request(req.url, { cache: "no-cache" }) : req).then(function (res) {
       if (res && (res.ok || res.type === "opaque")) {
         var copy = res.clone();
         caches.open(CACHE).then(function (c) { c.put(req, copy); });
