@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>베트남 환율 계산기</title>
+<title>환율계산기</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="베트남 동·달러·엔·위안을 원화로 바로 바꿔보는 여행용 환율 계산기">
+<meta name="description" content="여행지 돈을 원화로 바로 바꿔보는 여행용 환율계산기">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="환율계산기">
@@ -31,6 +31,7 @@
   --gold: #F2B53A;
   --key: #E6ECEA;
   --key-strong: #D3DEDA;
+  --scrim: rgba(10, 25, 22, .45);
   --warn-bg: #FFF1D6;
   --warn-ink: #7A4B00;
   --ok-bg: #DDF1EA;
@@ -43,7 +44,7 @@
   :root:not([data-theme="light"]) {
     --bg: #0A1513; --surface: #11211E; --ink: #E6EFEC; --muted: #8FA6A0; --line: #223934;
     --accent: #52C2A6; --panel: #133D35; --panel-ink: #F4EFE2; --panel-muted: #8FB5AA;
-    --gold: #F4BC48; --key: #182B27; --key-strong: #213A35;
+    --gold: #F4BC48; --key: #182B27; --key-strong: #213A35; --scrim: rgba(0, 0, 0, .6);
     --warn-bg: #3A2C10; --warn-ink: #F5CF85; --ok-bg: #12342C; --ok-ink: #8FDCC6;
     color-scheme: dark;
   }
@@ -51,7 +52,7 @@
 :root[data-theme="dark"] {
   --bg: #0A1513; --surface: #11211E; --ink: #E6EFEC; --muted: #8FA6A0; --line: #223934;
   --accent: #52C2A6; --panel: #133D35; --panel-ink: #F4EFE2; --panel-muted: #8FB5AA;
-  --gold: #F4BC48; --key: #182B27; --key-strong: #213A35;
+  --gold: #F4BC48; --key: #182B27; --key-strong: #213A35; --scrim: rgba(0, 0, 0, .6);
   --warn-bg: #3A2C10; --warn-ink: #F5CF85; --ok-bg: #12342C; --ok-ink: #8FDCC6;
   color-scheme: dark;
 }
@@ -75,10 +76,15 @@ button { cursor: pointer; touch-action: manipulation; }
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 10px 8px; }
-header.top h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 8px 8px; }
+.country-btn {
+  display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; padding: 4px 2px;
+  font-size: 19px; font-weight: 700; letter-spacing: -0.01em; min-width: 0;
+}
+.country-btn .flag { font-size: 22px; line-height: 1; }
+.country-btn .caret { width: 16px; height: 16px; fill: none; stroke: var(--muted); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .status {
-  display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; flex: none;
   padding: 5px 10px; font-size: 12px; font-weight: 600; background: var(--ok-bg); color: var(--ok-ink); white-space: nowrap;
 }
 .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
@@ -105,6 +111,7 @@ header.top h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0
 .amount-sfx { font-size: 18px; color: var(--panel-muted); font-weight: 600; flex: none; }
 .panel-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 13px; min-height: 1.3em; }
 .amount-hint { color: var(--gold); margin-left: auto; }
+.rate-line { color: var(--panel-muted); }
 
 .bills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .bills::-webkit-scrollbar { display: none; }
@@ -134,7 +141,6 @@ header.top h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0
 .stepper button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 16px; line-height: 1; }
 .stepper span { min-width: 34px; text-align: center; color: var(--ink); font-weight: 600; }
 .split-result { color: var(--ink); font-weight: 600; }
-.rate-line { color: var(--panel-muted); }
 .badge { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 1px 6px; background: var(--warn-bg); color: var(--warn-ink); margin-left: 4px; }
 
 /* Keypad */
@@ -168,10 +174,9 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
 .note-table td { text-align: right; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
 .note-table tr.tap { cursor: pointer; }
 .note-table tr.tap:active td { background: var(--key); }
-.note-table td.vnd { font-weight: 700; }
+.note-table td.loc { font-weight: 700; }
 .note-table td.krw { font-weight: 600; color: var(--accent); }
 .tips { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
-.tips b { color: var(--ink); }
 
 .field { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; gap: 10px; }
 .field label { font-size: 14px; font-weight: 600; }
@@ -185,21 +190,51 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
 .btn.ghost { background: var(--key); color: var(--ink); }
 .row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .row-btns .btn { flex: 1; }
+.chip-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-grid button {
+  border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 11px;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.chip-grid button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+
+/* Country picker */
+.sheet-wrap { position: fixed; inset: 0; z-index: 30; background: var(--scrim); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  width: 100%; max-width: 560px; max-height: 86%; overflow-y: auto; background: var(--surface);
+  border-radius: 20px 20px 0 0; padding-block: 14px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 12px;
+}
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sheet-head h2 { margin: 0; font-size: 17px; }
+.sheet-head button { border: 0; background: var(--key); border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: 13px; }
+.country-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.country-grid button {
+  display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid var(--line); background: var(--bg);
+  border-radius: 14px; padding: 10px 12px; min-width: 0;
+}
+.country-grid button .flag { font-size: 24px; line-height: 1; flex: none; }
+.country-grid button b { display: block; font-size: 15px; }
+.country-grid button small { display: block; color: var(--muted); font-size: 12px; }
+.country-grid button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 
 .toast {
   position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px);
   background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 13px; font-weight: 600;
-  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px); text-align: center; z-index: 20;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px); text-align: center; z-index: 40;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 @media (prefers-reduced-motion: reduce) { .toast, .keypad button { transition: none; } .status.loading::before { animation: none; } }
-@media (max-height: 700px) { .keypad { grid-auto-rows: 44px; gap: 6px; } .res { padding-block: 8px; } }
+@media (max-height: 700px) { .keypad { grid-auto-rows: 44px; gap: 6px; } .res { padding-block: 7px; } }
 </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
-    <h1>베트남 환율</h1>
+    <button class="country-btn" type="button" id="countryBtn" aria-haspopup="dialog">
+      <span class="flag" id="countryFlag" aria-hidden="true"></span><span id="countryName"></span>
+      <svg class="caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
     <button class="status warn" id="status" type="button" aria-live="polite">기본 환율</button>
   </header>
 
@@ -210,7 +245,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
           <div class="cur-seg" id="curSeg" role="group" aria-label="입력 통화"></div>
           <div class="amount-row">
             <div class="amount num" id="amount" aria-live="polite">0</div>
-            <div class="amount-sfx" id="amountSfx">동</div>
+            <div class="amount-sfx" id="amountSfx"></div>
           </div>
           <div class="panel-foot"><span class="rate-line num" id="rateLine"></span><span class="amount-hint num" id="amountHint"></span></div>
         </div>
@@ -240,12 +275,12 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     <section class="view" id="view-bills" role="tabpanel" hidden>
       <div class="page">
         <div class="card">
-          <h2>베트남 지폐 환산표</h2>
+          <h2 id="noteTitle">지폐 환산표</h2>
           <p>줄을 누르면 그 금액으로 계산기가 열려요.</p>
           <div style="overflow-x:auto"><table class="note-table num" id="noteTable"></table></div>
         </div>
         <div class="card">
-          <h2>현지에서 알아두면 좋은 것</h2>
+          <h2 id="tipsTitle">현지에서 알아두면 좋은 것</h2>
           <ul class="tips" id="tips"></ul>
         </div>
       </div>
@@ -259,16 +294,21 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
           <div class="row-btns"><button class="btn" type="button" id="refreshBtn">지금 환율 새로 받기</button></div>
         </div>
         <div class="card">
+          <h2>함께 볼 통화</h2>
+          <p>여행지 돈과 원화 말고 같이 보여줄 통화를 최대 3개까지 골라요.</p>
+          <div class="chip-grid" id="extraChips"></div>
+        </div>
+        <div class="card">
           <h2>환율 직접 입력</h2>
           <p>환전소나 은행에서 실제로 받은 환율이 있으면 넣어주세요. 비워두면 자동 환율을 써요.</p>
           <div id="manualFields" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
-        <div class="card">
-          <h2>달러를 동으로 바꿨다면</h2>
-          <p>한국에서 달러로 바꿔 가서 현지 금은방·환전소에서 동으로 바꾼 경우, 두 숫자를 넣으면 실제 동 환율을 계산해 넣어줘요.</p>
+        <div class="card" id="gsCard">
+          <h2 id="gsTitle">달러를 현지 돈으로 바꿨다면</h2>
+          <p id="gsDesc"></p>
           <div class="field"><label for="gsUsd">한국에서 산 달러<small>1달러에 낸 원</small></label><div class="inp"><input id="gsUsd" inputmode="decimal" autocomplete="off"><span>원</span></div></div>
-          <div class="field"><label for="gsVnd">현지에서 받은 동<small>1달러에 받은 동</small></label><div class="inp"><input id="gsVnd" inputmode="decimal" autocomplete="off" placeholder="예: 26,000"><span>동</span></div></div>
-          <div class="row-btns"><button class="btn" type="button" id="gsApply">동 환율에 적용</button></div>
+          <div class="field"><label for="gsLoc" id="gsLocLabel">현지에서 받은 돈</label><div class="inp"><input id="gsLoc" inputmode="decimal" autocomplete="off"><span id="gsLocSfx"></span></div></div>
+          <div class="row-btns"><button class="btn" type="button" id="gsApply">환율에 적용</button></div>
         </div>
         <div class="card">
           <h2>카드 결제 수수료</h2>
@@ -292,26 +332,100 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     </button>
   </nav>
 </div>
+
+<div class="sheet-wrap" id="picker" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+    <div class="sheet-head"><h2 id="pickerTitle">어느 나라로 가세요?</h2><button type="button" id="pickerClose">닫기</button></div>
+    <div class="country-grid" id="countryGrid"></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 (function () {
   "use strict";
 
-  // KRW value of one "unit" is how Korean banks quote each currency (100엔, 1달러 ...).
+  // unit: how much is quoted against KRW ("100엔 = 960원"). notes: bills for the table, chips: quick-add buttons.
+  // short: local price shorthand, e.g. VND "45k", IDR "50rb".
   var CUR = {
-    VND: { name: "베트남 동", sfx: "동", unit: 10000, unitLabel: "10,000동", dec: 0 },
-    KRW: { name: "한국 원", sfx: "원", unit: 1, unitLabel: "1원", dec: 0 },
-    USD: { name: "미국 달러", sfx: "달러", unit: 1, unitLabel: "1달러", dec: 2 },
-    JPY: { name: "일본 엔", sfx: "엔", unit: 100, unitLabel: "100엔", dec: 0 },
-    CNY: { name: "중국 위안", sfx: "위안", unit: 1, unitLabel: "1위안", dec: 2 }
+    KRW: { name: "한국 원", sfx: "원", unit: 1, dec: 0 },
+    VND: { name: "베트남 동", sfx: "동", unit: 10000, dec: 0, short: "k",
+      notes: [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000], chips: [10000, 20000, 50000, 100000, 200000, 500000] },
+    JPY: { name: "일본 엔", sfx: "엔", unit: 100, dec: 0, notes: [1000, 5000, 10000], chips: [100, 500, 1000, 5000, 10000] },
+    THB: { name: "태국 바트", sfx: "바트", unit: 1, dec: 2, notes: [20, 50, 100, 500, 1000], chips: [10, 20, 50, 100, 500, 1000] },
+    CNY: { name: "중국 위안", sfx: "위안", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] },
+    TWD: { name: "대만 달러", sfx: "대만달러", unit: 1, dec: 0, notes: [100, 200, 500, 1000, 2000], chips: [10, 50, 100, 500, 1000] },
+    HKD: { name: "홍콩 달러", sfx: "홍콩달러", unit: 1, dec: 2, notes: [10, 20, 50, 100, 500, 1000], chips: [10, 20, 50, 100, 500] },
+    PHP: { name: "필리핀 페소", sfx: "페소", unit: 1, dec: 2, notes: [50, 100, 200, 500, 1000], chips: [20, 50, 100, 200, 500, 1000] },
+    SGD: { name: "싱가포르 달러", sfx: "싱가포르달러", unit: 1, dec: 2, notes: [2, 5, 10, 50, 100], chips: [1, 2, 5, 10, 50, 100] },
+    MYR: { name: "말레이시아 링깃", sfx: "링깃", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] },
+    IDR: { name: "인도네시아 루피아", sfx: "루피아", unit: 10000, dec: 0, short: "rb",
+      notes: [1000, 2000, 5000, 10000, 20000, 50000, 100000], chips: [5000, 10000, 20000, 50000, 100000] },
+    USD: { name: "미국 달러", sfx: "달러", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] },
+    EUR: { name: "유로", sfx: "유로", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100, 200], chips: [1, 5, 10, 20, 50, 100] },
+    GBP: { name: "영국 파운드", sfx: "파운드", unit: 1, dec: 2, notes: [5, 10, 20, 50], chips: [1, 5, 10, 20, 50] },
+    AUD: { name: "호주 달러", sfx: "호주달러", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] },
+    CAD: { name: "캐나다 달러", sfx: "캐나다달러", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] }
   };
-  var ORDER = ["VND", "KRW", "USD", "JPY", "CNY"];
-  var FOREIGN = ["VND", "USD", "JPY", "CNY"];
-  // Fallback only, used before the first successful download (KRW per 1 unit of currency, approx. Sept 2026).
-  var DEFAULT_RATES = { VND: 0.055, USD: 1450, JPY: 9.6, CNY: 204 };
-  var NOTES = [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000];
-  var BILL_CHIPS = [10000, 20000, 50000, 100000, 200000, 500000];
+  var FOREIGN = Object.keys(CUR).filter(function (c) { return c !== "KRW"; });
+  // Fallback only, used before the first successful download (KRW per 1 unit, approx. Sept 2026).
+  var DEFAULT_RATES = {
+    VND: 0.055, JPY: 9.6, THB: 44, CNY: 204, TWD: 46, HKD: 186, PHP: 25.4, SGD: 1124,
+    MYR: 345, IDR: 0.089, USD: 1450, EUR: 1682, GBP: 1943, AUD: 943, CAD: 1044
+  };
+
+  var DCC_TIP = ["원화 결제 거절", "카드 결제할 때 '원화(KRW)로 결제할까요?'라고 물으면 거절하고 현지 통화로 결제하세요. 원화 결제는 수수료가 3~8% 더 붙어요."];
+  var COUNTRIES = [
+    { id: "VN", name: "베트남", flag: "🇻🇳", cur: "VND", tips: [
+      ["가격표 읽기", "메뉴판에 '45' 또는 '45k'라고 적혀 있으면 45,000동이에요. 'tr'(triệu)은 100만 동이에요."],
+      ["지폐 헷갈림 주의", "20,000동과 500,000동 지폐는 둘 다 파란색 계열이라 헷갈리기 쉬워요. 낼 때 0 개수를 꼭 세어보세요."],
+      ["환전 요령", "보통 한국에서 달러로 바꿔 가서 현지 금은방에서 동으로 바꾸는 쪽이 유리해요. 받은 환율은 '환율 설정'에 넣어두세요."] ] },
+    { id: "JP", name: "일본", flag: "🇯🇵", cur: "JPY", tips: [
+      ["가격표 읽기", "'税込'는 세금 포함, '税抜'·'税別'은 세금 별도 가격이에요. 소비세는 10%(포장 음식 등은 8%)예요."],
+      ["현금", "작은 식당이나 시골 가게는 아직 현금만 받는 곳이 있어요."],
+      ["팁", "팁 문화가 없어요."] ] },
+    { id: "TH", name: "태국", flag: "🇹🇭", cur: "THB", tips: [
+      ["작은 지폐 준비", "1,000바트 지폐는 노점·택시에서 거스름돈이 없을 때가 많아요. 20·100바트를 넉넉히 챙기세요."],
+      ["팁", "마사지나 호텔에서는 20~100바트 정도 팁을 주는 경우가 많아요."],
+      ["ATM", "현지 ATM에서 해외 카드로 뽑으면 건당 수수료(보통 200바트대)가 붙어요."] ] },
+    { id: "CN", name: "중국", flag: "🇨🇳", cur: "CNY", tips: [
+      ["결제", "현금보다 알리페이·위챗페이를 훨씬 많이 써요. 출국 전에 해외 카드를 연결해 두세요."],
+      ["팁", "팁 문화가 없어요."] ] },
+    { id: "TW", name: "대만", flag: "🇹🇼", cur: "TWD", tips: [
+      ["현금", "야시장과 작은 가게는 현금만 받는 곳이 많아요."],
+      ["교통카드", "이지카드(EasyCard)로 지하철·버스·편의점 결제가 돼요."],
+      ["팁", "팁 문화는 거의 없고, 일부 식당은 봉사료 10%가 계산서에 포함돼요."] ] },
+    { id: "HK", name: "홍콩", flag: "🇭🇰", cur: "HKD", tips: [
+      ["교통카드", "옥토퍼스 카드로 지하철·버스·편의점 결제가 돼요."],
+      ["봉사료", "식당 계산서에 봉사료 10%가 붙는 경우가 많아요. 붙어 있으면 팁은 안 줘도 돼요."] ] },
+    { id: "PH", name: "필리핀", flag: "🇵🇭", cur: "PHP", tips: [
+      ["작은 지폐 준비", "1,000페소 지폐는 작은 가게나 트라이시클에서 거스름돈이 없을 수 있어요."],
+      ["팁", "계산서에 봉사료가 있는지 먼저 보고, 없으면 10% 안팎으로 주는 경우가 많아요."] ] },
+    { id: "SG", name: "싱가포르", flag: "🇸🇬", cur: "SGD", tips: [
+      ["가격표 읽기", "가격 옆 '++'는 봉사료 10%와 세금(GST 9%)이 따로 붙는다는 뜻이에요."],
+      ["팁", "팁 문화는 거의 없어요."] ] },
+    { id: "MY", name: "말레이시아", flag: "🇲🇾", cur: "MYR", tips: [
+      ["이동", "택시보다 그랩(Grab) 앱을 많이 쓰고, 요금이 미리 정해져서 편해요."],
+      ["봉사료", "식당 계산서에 봉사료·세금이 따로 붙는 경우가 많아요."] ] },
+    { id: "ID", name: "인도네시아", flag: "🇮🇩", cur: "IDR", tips: [
+      ["가격표 읽기", "'rb'(ribu)는 천, 'jt'(juta)는 백만 루피아예요. '50rb'는 50,000루피아예요."],
+      ["환전", "공인 환전소를 쓰고, 받은 돈은 그 자리에서 직접 세어보세요."] ] },
+    { id: "US", name: "미국·괌·사이판", flag: "🇺🇸", cur: "USD", tips: [
+      ["팁", "식당 팁은 보통 15~20%예요."],
+      ["세금", "가격표에 판매세가 빠져 있어서 계산할 때 더 나와요. 세율은 지역마다 달라요."] ] },
+    { id: "EU", name: "유럽 (유로)", flag: "🇪🇺", cur: "EUR", tips: [
+      ["팁", "팁은 필수가 아니에요. 서비스가 좋았으면 잔돈이나 5~10% 정도 남겨요."],
+      ["결제", "대부분 카드와 애플페이로 결제할 수 있어요."] ] },
+    { id: "GB", name: "영국", flag: "🇬🇧", cur: "GBP", tips: [
+      ["봉사료", "식당 계산서에 봉사료(보통 12.5%)가 포함된 곳이 많아요. 포함돼 있으면 팁은 안 줘도 돼요."],
+      ["결제", "현금을 거의 안 써요. 대부분 카드와 애플페이로 결제해요."] ] },
+    { id: "AU", name: "호주", flag: "🇦🇺", cur: "AUD", tips: [
+      ["팁", "팁 문화가 없어요."],
+      ["카드 수수료", "카드로 결제하면 1~2% 수수료(surcharge)를 더 받는 가게가 있어요."] ] },
+    { id: "CA", name: "캐나다", flag: "🇨🇦", cur: "CAD", tips: [
+      ["팁", "식당 팁은 보통 15~20%예요."],
+      ["세금", "가격표에 세금이 빠져 있어서 계산할 때 더 나와요. 세율은 주마다 달라요."] ] }
+  ];
   var STALE_MS = 3 * 60 * 60 * 1000;
 
   var store = {
@@ -319,21 +433,36 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
 
-  var prefs = Object.assign({ input: "VND", amount: "", manual: {}, fee: 0, people: 1, tab: "calc" }, store.get("vnfx.prefs", {}));
+  var prefs = Object.assign({ country: "VN", input: "VND", amount: "", manual: {}, fee: 0, people: 1, tab: "calc", extras: ["USD", "JPY", "CNY"] },
+    store.get("vnfx.prefs", {}));
   // Every launch starts from 0; only settings carry over.
   prefs.amount = "";
   prefs.origin = null;
-  if (!CUR[prefs.input]) prefs.input = "VND";
   if (!prefs.manual || typeof prefs.manual !== "object") prefs.manual = {};
+  if (!Array.isArray(prefs.extras)) prefs.extras = ["USD", "JPY", "CNY"];
+  prefs.extras = prefs.extras.filter(function (c) { return CUR[c] && c !== "KRW"; }).slice(0, 3);
+  if (!countryById(prefs.country)) prefs.country = "VN";
 
   var rates = store.get("vnfx.rates", null);
-  if (!rates || !rates.krwPer || !FOREIGN.every(function (c) { return rates.krwPer[c] > 0; })) {
-    rates = { krwPer: Object.assign({}, DEFAULT_RATES), at: null, fetchedAt: null, source: "default" };
-  }
+  if (!rates || !rates.krwPer) rates = { krwPer: {}, at: null, fetchedAt: null, source: "default" };
+  // Rates saved by an older version may lack newer currencies: fill those in and fetch again soon.
+  var missing = FOREIGN.filter(function (c) { return !(rates.krwPer[c] > 0); });
+  rates.krwPer = Object.assign({}, DEFAULT_RATES, rates.krwPer);
+  if (missing.length) rates.fetchedAt = null;
   var loading = false;
 
   function savePrefs() { store.set("vnfx.prefs", prefs); }
   function $(id) { return document.getElementById(id); }
+  function countryById(id) { for (var i = 0; i < COUNTRIES.length; i++) if (COUNTRIES[i].id === id) return COUNTRIES[i]; return null; }
+  function country() { return countryById(prefs.country); }
+  function local() { return country().cur; }
+  function unitLabel(c) { return fmt(CUR[c].unit, 0) + CUR[c].sfx; }
+  // Currencies on screen: the trip's currency, KRW, then the chosen extras.
+  function shownCurrencies() {
+    var list = [local(), "KRW"];
+    prefs.extras.forEach(function (c) { if (list.indexOf(c) < 0) list.push(c); });
+    return list;
+  }
 
   // ---------- math ----------
   function baseRate(c) {
@@ -348,6 +477,15 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
   }
   function convert(v, from, to) { return v * krwPer(from) / krwPer(to); }
   function amountValue() { var n = parseFloat(prefs.amount); return isFinite(n) ? n : 0; }
+
+  // Rounds to one significant digit when that stays within 10%, else two: 9.6 -> 10, 1450 -> 1500.
+  function easyNumber(x) {
+    var p = Math.pow(10, Math.floor(Math.log10(x)));
+    var one = Math.round(x / p) * p;
+    if (Math.abs(one - x) / x <= 0.1) return one;
+    var p2 = p / 10;
+    return Math.round(x / p2) * p2;
+  }
 
   // ---------- formatting ----------
   function fmt(v, dec, minDec) {
@@ -365,11 +503,14 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     return parts.length > 1 ? head + "." + parts[1] : head;
   }
   function manWon(v) { return v >= 10000 ? fmt(v / 10000, 1) + "만원" : ""; }
-  function vndShort(v) {
-    if (v >= 1e6) return fmt(v / 1e6, 2) + " triệu";
-    if (v >= 1000) return fmt(v / 1000, 1) + "k";
+  function shorthand(v, c) {
+    if (c === "KRW") return manWon(v);
+    if (CUR[c].short === "k") return v >= 1e6 ? fmt(v / 1e6, 2) + " triệu" : v >= 1000 ? fmt(v / 1000, 1) + "k" : "";
+    if (CUR[c].short === "rb") return v >= 1e6 ? fmt(v / 1e6, 2) + "jt" : v >= 1000 ? fmt(v / 1000, 1) + "rb" : "";
     return "";
   }
+  function chipLabel(n, c) { return "+" + (CUR[c].short === "k" && n >= 1000 ? fmt(n / 1000, 0) + "k" : CUR[c].short === "rb" && n >= 1000 ? fmt(n / 1000, 0) + "rb" : fmt(n, 0)); }
+  function rateText(c) { var v = krwPer(c) * CUR[c].unit; return fmt(v, v < 100 ? 2 : v < 1000 ? 1 : 0); }
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function fmtDate(ms) { var d = new Date(ms); return (d.getMonth() + 1) + "/" + d.getDate() + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
 
@@ -384,54 +525,62 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     el.textContent = (navigator.onLine ? "" : "오프라인 · ") + fmtDate(rates.at || rates.fetchedAt) + " 기준";
   }
 
+  function renderHeader() {
+    $("countryFlag").textContent = country().flag;
+    $("countryName").textContent = country().name;
+    $("countryBtn").setAttribute("aria-label", "여행 나라: " + country().name + ", 눌러서 바꾸기");
+  }
+
   function renderCalc() {
+    var list = shownCurrencies();
+    if (list.indexOf(prefs.input) < 0) prefs.input = local();
     var c = prefs.input, v = amountValue();
+
     var seg = $("curSeg");
     seg.innerHTML = "";
-    ORDER.forEach(function (code) {
+    list.forEach(function (code) {
       var b = document.createElement("button");
       b.type = "button"; b.textContent = code;
       b.setAttribute("aria-pressed", String(code === c));
+      b.setAttribute("aria-label", CUR[code].name + "로 입력");
       b.addEventListener("click", function () { switchInput(code); });
       seg.appendChild(b);
     });
     $("amount").textContent = fmtInput(prefs.amount);
     $("amountSfx").textContent = CUR[c].sfx;
-    var hint = "";
-    if (c === "VND") hint = vndShort(v) ? "= " + vndShort(v) : "";
-    else if (c === "KRW") hint = manWon(v) ? "= " + manWon(v) : "";
-    $("amountHint").textContent = hint;
+    var sh = shorthand(v, c);
+    $("amountHint").textContent = sh ? "= " + sh : "";
     $("dotKey").disabled = CUR[c].dec === 0;
 
     var bills = $("bills");
-    bills.hidden = c !== "VND";
-    if (c === "VND" && !bills.childElementCount) {
-      BILL_CHIPS.forEach(function (n) {
-        var b = document.createElement("button");
-        b.type = "button"; b.textContent = "+" + fmt(n / 1000, 0) + "k";
-        b.setAttribute("aria-label", fmt(n, 0) + "동 더하기");
-        b.addEventListener("click", function () { setAmount(String(amountValue() + n)); });
-        bills.appendChild(b);
-      });
-    }
+    bills.innerHTML = "";
+    var chips = CUR[c].chips || [];
+    bills.hidden = !chips.length;
+    chips.forEach(function (n) {
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = chipLabel(n, c);
+      b.setAttribute("aria-label", fmt(n, 0) + CUR[c].sfx + " 더하기");
+      b.addEventListener("click", function () { setAmount(String(Math.round((amountValue() + n) * 100) / 100)); });
+      bills.appendChild(b);
+    });
 
     var res = $("results");
     res.innerHTML = "";
-    var targets = ORDER.filter(function (x) { return x !== c; });
-    if (c !== "KRW") targets.sort(function (a, b) { return (b === "KRW") - (a === "KRW"); });
-    targets.forEach(function (code, i) {
+    var targets = list.filter(function (x) { return x !== c; });
+    targets.sort(function (a, b) { return (b === "KRW") - (a === "KRW"); });
+    targets.forEach(function (code) {
       var out = convert(v, c, code);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "res" + (code === "KRW" ? " primary" : "");
       b.setAttribute("aria-label", CUR[code].name + " " + fmtCur(out, code) + CUR[code].sfx + ", 눌러서 이 통화로 입력");
-      var sub = code === "KRW" ? manWon(out) : (code === "VND" ? vndShort(out) : "");
       b.innerHTML = '<span class="code"></span><span class="val num"></span><span class="name"></span>';
       b.querySelector(".code").textContent = code;
       b.querySelector(".name").textContent = CUR[code].name;
       var val = b.querySelector(".val");
       val.textContent = fmtCur(out, code);
       var s = document.createElement("small"); s.textContent = CUR[code].sfx; val.appendChild(s);
+      var sub = shorthand(out, code);
       if (sub) { var sb = document.createElement("span"); sb.className = "sub"; sb.textContent = sub; val.appendChild(sb); }
       b.addEventListener("click", function () { switchInput(code); });
       res.appendChild(b);
@@ -441,48 +590,46 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     var krw = convert(v, c, "KRW");
     $("pResult").textContent = prefs.people > 1 ? "1인당 " + fmt(Math.round(krw / prefs.people), 0) + "원" : "—";
 
-    var shown = c === "KRW" ? "VND" : c;
-    var line = CUR[shown].unitLabel + " = " + fmt(krwPer(shown) * CUR[shown].unit, CUR[shown].unit === 1 ? 1 : 0) + "원";
-    $("rateLine").innerHTML = "";
-    $("rateLine").appendChild(document.createTextNode(line));
+    var shown = c === "KRW" ? local() : c;
+    var line = $("rateLine");
+    line.innerHTML = "";
+    line.appendChild(document.createTextNode(unitLabel(shown) + " = " + rateText(shown) + "원"));
     var tags = [];
     if (prefs.manual[shown] > 0) tags.push("직접 입력");
     if (Number(prefs.fee)) tags.push("수수료 " + prefs.fee + "%");
-    tags.forEach(function (t) { var s = document.createElement("span"); s.className = "badge"; s.textContent = t; $("rateLine").appendChild(s); });
+    tags.forEach(function (t) { var s = document.createElement("span"); s.className = "badge"; s.textContent = t; line.appendChild(s); });
   }
 
   function renderBills() {
+    var c = local(), cn = country();
+    var second = c === "USD" ? null : "USD";
+    $("noteTitle").textContent = CUR[c].name + " 지폐 환산표";
     var t = $("noteTable");
-    t.innerHTML = "<thead><tr><th>베트남 동</th><th>원</th><th>달러</th></tr></thead>";
+    t.innerHTML = "";
+    var head = document.createElement("thead"), hr = document.createElement("tr");
+    [CUR[c].name, "원"].concat(second ? ["달러"] : []).forEach(function (h) { var th = document.createElement("th"); th.textContent = h; hr.appendChild(th); });
+    head.appendChild(hr); t.appendChild(head);
     var tb = document.createElement("tbody");
-    NOTES.forEach(function (n) {
+    (CUR[c].notes || []).forEach(function (n) {
       var tr = document.createElement("tr");
       tr.className = "tap";
       tr.tabIndex = 0;
-      var krw = convert(n, "VND", "KRW");
-      [fmt(n, 0) + "동", fmt(Math.round(krw), 0) + "원", "$" + fmt(convert(n, "VND", "USD"), 2, 2)].forEach(function (txt, i) {
+      var cells = [fmt(n, 0) + CUR[c].sfx, fmt(Math.round(convert(n, c, "KRW")), 0) + "원"];
+      if (second) cells.push("$" + fmt(convert(n, c, "USD"), 2, 2));
+      cells.forEach(function (txt, i) {
         var td = document.createElement("td"); td.textContent = txt;
-        if (i === 0) td.className = "vnd"; if (i === 1) td.className = "krw";
+        if (i === 0) td.className = "loc"; if (i === 1) td.className = "krw";
         tr.appendChild(td);
       });
-      function open() { prefs.input = "VND"; setAmount(String(n)); setTab("calc"); }
+      function open() { prefs.input = c; setAmount(String(n)); setTab("calc"); }
       tr.addEventListener("click", open);
       tr.addEventListener("keydown", function (e) { if (e.key === "Enter") open(); });
       tb.appendChild(tr);
     });
     t.appendChild(tb);
 
-    var per100 = krwPer("VND") * 100; // KRW for 100 VND
-    var rough = 100 / 20;             // "÷ 20" rule of thumb, as KRW for 100 VND
-    var diff = Math.round((rough - per100) / per100 * 100);
-    var diffText = diff === 0 ? "지금 환율과 거의 같아요" : "지금 환율보다 약 " + Math.abs(diff) + "% " + (diff < 0 ? "적게" : "많게") + " 나와요";
-    var tips = [
-      ["암산 공식", "동 금액 ÷ 20 ≈ 원 (" + diffText + "). 더 정확히는 동에서 0 두 개 빼고 × " + fmt(per100, 2) + "."],
-      ["가격표 읽기", "메뉴판에 '45' 또는 '45k'라고 적혀 있으면 45,000동이에요. 'tr'(triệu)은 100만 동이에요."],
-      ["지폐 헷갈림 주의", "20,000동과 500,000동 지폐는 둘 다 파란색 계열이라 헷갈리기 쉬워요. 낼 때 0 개수를 꼭 세어보세요."],
-      ["잔돈", "500동·1,000동처럼 작은 지폐는 거의 쓸 일이 없어서 받으면 팁이나 노점에서 먼저 쓰는 게 좋아요."],
-      ["환전 요령", "보통 한국에서 달러로 바꿔 가서 현지 금은방에서 동으로 바꾸는 쪽이 유리해요. 받은 환율은 '환율 설정'에 넣어두면 계산이 더 정확해져요."]
-    ];
+    $("tipsTitle").textContent = cn.name + "에서 알아두면 좋은 것";
+    var tips = [mentalMathTip(c)].concat(cn.tips, [DCC_TIP]);
     var ul = $("tips");
     ul.innerHTML = "";
     tips.forEach(function (tp) {
@@ -491,6 +638,22 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
       li.appendChild(b); li.appendChild(document.createTextNode(tp[1]));
       ul.appendChild(li);
     });
+  }
+
+  function mentalMathTip(c) {
+    var k = baseRate(c), sfx = CUR[c].sfx, rule, est, diff;
+    if (k < 1) {
+      var d = easyNumber(1 / k);
+      rule = sfx + " 금액 ÷ " + fmt(d, 1) + " ≈ 원";
+      est = 1 / d;
+    } else {
+      var m = easyNumber(k);
+      rule = sfx + " 금액 × " + fmt(m, 1) + " ≈ 원";
+      est = m;
+    }
+    diff = Math.round((est - k) / k * 100);
+    var note = diff === 0 ? "지금 환율과 거의 같아요" : "지금 환율보다 약 " + Math.abs(diff) + "% " + (diff < 0 ? "적게" : "많게") + " 나와요";
+    return ["암산 공식", rule + " (" + note + "). 정확한 환율은 " + unitLabel(c) + " = " + fmt(k * CUR[c].unit, 2) + "원이에요."];
   }
 
   function renderRates() {
@@ -503,38 +666,81 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     }
     $("srcInfo").textContent = info;
 
-    var box = $("manualFields");
-    if (!box.childElementCount) {
-      FOREIGN.forEach(function (c) {
-        var f = document.createElement("div");
-        f.className = "field";
-        f.innerHTML = '<label></label><div class="inp"><input inputmode="decimal" autocomplete="off"><span>원</span></div>';
-        var input = f.querySelector("input");
-        input.id = "man-" + c;
-        f.querySelector("label").htmlFor = input.id;
-        f.querySelector("label").textContent = CUR[c].unitLabel + " =";
-        var small = document.createElement("small"); f.querySelector("label").appendChild(small);
-        input.addEventListener("change", function () {
-          var n = parseNum(input.value);
-          if (n > 0) prefs.manual[c] = n; else delete prefs.manual[c];
-          savePrefs(); renderAll();
-          toast(n > 0 ? CUR[c].name + " 환율을 직접 입력한 값으로 바꿨어요" : CUR[c].name + " 환율을 자동으로 되돌렸어요");
-        });
-        box.appendChild(f);
+    var chipsBox = $("extraChips");
+    chipsBox.innerHTML = "";
+    FOREIGN.filter(function (c) { return c !== local(); }).forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = CUR[c].name;
+      var on = prefs.extras.indexOf(c) >= 0;
+      b.setAttribute("aria-pressed", String(on));
+      b.addEventListener("click", function () {
+        var i = prefs.extras.indexOf(c);
+        if (i >= 0) prefs.extras.splice(i, 1);
+        else if (prefs.extras.filter(function (x) { return x !== local(); }).length >= 3) { toast("최대 3개까지 고를 수 있어요. 하나를 먼저 빼주세요."); return; }
+        else prefs.extras.push(c);
+        savePrefs(); renderAll();
       });
-    }
-    FOREIGN.forEach(function (c) {
-      var input = $("man-" + c);
-      var auto = rates.krwPer[c] * CUR[c].unit;
-      input.placeholder = fmt(auto, CUR[c].unit === 1 ? 1 : 0);
-      if (document.activeElement !== input) input.value = prefs.manual[c] > 0 ? fmt(prefs.manual[c], 2) : "";
-      input.closest(".field").querySelector("small").textContent = prefs.manual[c] > 0 ? "직접 입력 중 · 자동 " + fmt(auto, CUR[c].unit === 1 ? 1 : 0) + "원" : "자동 환율 사용 중";
+      chipsBox.appendChild(b);
     });
+
+    var box = $("manualFields");
+    var typing = box.contains(document.activeElement);
+    if (!typing) box.innerHTML = "";
+    if (!typing) shownCurrencies().filter(function (c) { return c !== "KRW"; }).forEach(function (c) {
+      var auto = rates.krwPer[c] * CUR[c].unit;
+      var autoText = fmt(auto, auto < 100 ? 2 : auto < 1000 ? 1 : 0);
+      var f = document.createElement("div");
+      f.className = "field";
+      f.innerHTML = '<label></label><div class="inp"><input inputmode="decimal" autocomplete="off"><span>원</span></div>';
+      var input = f.querySelector("input"), label = f.querySelector("label");
+      input.id = "man-" + c;
+      label.htmlFor = input.id;
+      label.textContent = unitLabel(c) + " =";
+      var small = document.createElement("small");
+      small.textContent = prefs.manual[c] > 0 ? "직접 입력 중 · 자동 " + autoText + "원" : "자동 환율 사용 중";
+      label.appendChild(small);
+      input.placeholder = autoText;
+      input.value = prefs.manual[c] > 0 ? fmt(prefs.manual[c], 2) : "";
+      input.addEventListener("change", function () {
+        var n = parseNum(input.value);
+        if (n > 0) prefs.manual[c] = n; else delete prefs.manual[c];
+        savePrefs(); renderAll();
+        toast(n > 0 ? CUR[c].name + " 환율을 직접 입력한 값으로 바꿨어요" : CUR[c].name + " 환율을 자동으로 되돌렸어요");
+      });
+      box.appendChild(f);
+    });
+
+    var c = local();
+    $("gsCard").hidden = c === "USD";
+    $("gsTitle").textContent = "달러를 " + CUR[c].sfx + "(으)로 바꿨다면";
+    $("gsDesc").textContent = "한국에서 달러로 바꿔 가서 현지 환전소에서 " + CUR[c].name + "(으)로 바꾼 경우, 두 숫자를 넣으면 실제 환율을 계산해 넣어줘요.";
+    $("gsLocLabel").innerHTML = "";
+    $("gsLocLabel").appendChild(document.createTextNode("현지에서 받은 돈"));
+    var sm = document.createElement("small"); sm.textContent = "1달러에 받은 " + CUR[c].sfx; $("gsLocLabel").appendChild(sm);
+    $("gsLocSfx").textContent = CUR[c].sfx;
+    $("gsLoc").placeholder = "예: " + fmt(easyNumber(rates.krwPer.USD / rates.krwPer[c]), 2);
     $("gsUsd").placeholder = fmt(baseRate("USD"), 1);
     if (document.activeElement !== $("feeInp")) $("feeInp").value = Number(prefs.fee) ? String(prefs.fee) : "";
   }
 
-  function renderAll() { renderStatus(); renderCalc(); renderBills(); renderRates(); }
+  function renderPicker() {
+    var grid = $("countryGrid");
+    grid.innerHTML = "";
+    COUNTRIES.forEach(function (cn) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(cn.id === prefs.country));
+      b.innerHTML = '<span class="flag" aria-hidden="true"></span><span><b></b><small></small></span>';
+      b.querySelector(".flag").textContent = cn.flag;
+      b.querySelector("b").textContent = cn.name;
+      b.querySelector("small").textContent = CUR[cn.cur].name + " · " + cn.cur;
+      b.addEventListener("click", function () { setCountry(cn.id); });
+      grid.appendChild(b);
+    });
+  }
+
+  function renderAll() { renderHeader(); renderStatus(); renderCalc(); renderBills(); renderRates(); }
 
   // ---------- input ----------
   function parseNum(s) { var n = parseFloat(String(s).replace(/[^0-9.]/g, "")); return isFinite(n) ? n : 0; }
@@ -575,6 +781,31 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     setAmount(str === "0" ? "" : str, true);
   }
 
+  function setCountry(id) {
+    var cn = countryById(id);
+    closePicker();
+    if (!cn) return;
+    prefs.country = id;
+    prefs.input = cn.cur;
+    prefs.amount = ""; prefs.origin = null;
+    savePrefs(); renderAll();
+    toast(cn.name + " 기준으로 바꿨어요");
+  }
+
+  // ---------- country picker ----------
+  var lastFocus = null;
+  function openPicker() {
+    lastFocus = document.activeElement;
+    renderPicker();
+    $("picker").hidden = false;
+    var cur = $("countryGrid").querySelector('[aria-pressed="true"]');
+    if (cur) { cur.focus(); cur.scrollIntoView({ block: "nearest" }); }
+  }
+  function closePicker() {
+    $("picker").hidden = true;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
   // ---------- tabs ----------
   function setTab(name) {
     prefs.tab = name; savePrefs();
@@ -613,8 +844,12 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
       var s = SOURCES[i++];
       getJSON(s.url).then(function (d) {
         var p = s.parse(d), k = {};
-        FOREIGN.forEach(function (c) { var x = Number(p.rate(c)); if (!(x > 0)) throw new Error("missing " + c); k[c] = 1 / x; });
-        rates = { krwPer: k, at: isFinite(p.at) ? p.at : Date.now(), fetchedAt: Date.now(), source: s.name };
+        FOREIGN.forEach(function (c) {
+          var x = Number(p.rate(c));
+          if (x > 0) k[c] = 1 / x;
+          else if (c === local()) throw new Error("missing " + c);
+        });
+        rates = { krwPer: Object.assign({}, rates.krwPer, k), at: isFinite(p.at) ? p.at : Date.now(), fetchedAt: Date.now(), source: s.name };
         store.set("vnfx.rates", rates);
         loading = false; renderAll();
         if (byUser) toast("최신 환율로 바꿨어요");
@@ -639,12 +874,16 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     if (b && !b.disabled) press(b.dataset.k);
   });
   document.addEventListener("keydown", function (e) {
+    if (!$("picker").hidden) { if (e.key === "Escape") closePicker(); return; }
     if (prefs.tab !== "calc" || e.target.tagName === "INPUT") return;
     if (/^[0-9]$/.test(e.key)) press(e.key);
     else if (e.key === ".") press(".");
     else if (e.key === "Backspace") press("back");
     else if (e.key === "Escape") press("clear");
   });
+  $("countryBtn").addEventListener("click", openPicker);
+  $("pickerClose").addEventListener("click", closePicker);
+  $("picker").addEventListener("click", function (e) { if (e.target === $("picker")) closePicker(); });
   $("pMinus").addEventListener("click", function () { prefs.people = Math.max(1, prefs.people - 1); savePrefs(); renderCalc(); });
   $("pPlus").addEventListener("click", function () { prefs.people = Math.min(20, prefs.people + 1); savePrefs(); renderCalc(); });
   $("status").addEventListener("click", function () { refreshRates(true); });
@@ -658,16 +897,17 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     savePrefs(); renderAll();
   });
   $("gsApply").addEventListener("click", function () {
+    var c = local();
     var usd = parseNum($("gsUsd").value) || baseRate("USD");
-    var vnd = parseNum($("gsVnd").value);
-    if (!(vnd > 1000)) { toast("현지에서 1달러에 받은 동 금액을 넣어주세요 (예: 26,000)"); return; }
-    prefs.manual.VND = usd / vnd * CUR.VND.unit;
+    var got = parseNum($("gsLoc").value);
+    if (!(got > 0)) { toast("현지에서 1달러에 받은 " + CUR[c].sfx + " 금액을 넣어주세요"); return; }
+    prefs.manual[c] = usd / got * CUR[c].unit;
     savePrefs(); renderAll();
-    toast("10,000동 = " + fmt(prefs.manual.VND, 0) + "원으로 맞췄어요");
+    toast(unitLabel(c) + " = " + rateText(c) + "원으로 맞췄어요");
   });
   $("resetBtn").addEventListener("click", function () {
     prefs.manual = {}; prefs.fee = 0; savePrefs();
-    $("gsUsd").value = ""; $("gsVnd").value = "";
+    $("gsUsd").value = ""; $("gsLoc").value = "";
     renderAll(); toast("자동 환율로 되돌렸어요");
   });
   window.addEventListener("online", function () { renderStatus(); refreshIfStale(); });
