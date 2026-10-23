@@ -101,10 +101,13 @@ header.top { display: flex; align-items: center; justify-content: space-between;
 /* Amount panel */
 .panel { background: var(--panel); color: var(--panel-ink); border-radius: 20px; padding: 12px 14px 12px; display: flex; flex-direction: column; gap: 6px; }
 .cur-seg { display: flex; gap: 4px; background: rgba(0,0,0,.18); border-radius: 12px; padding: 3px; }
+.seg-label { font-size: 12px; color: var(--panel-muted); padding-left: 2px; }
 .cur-seg button {
-  flex: 1; border: 0; border-radius: 9px; padding: 7px 0; background: transparent; color: var(--panel-muted);
-  font-family: var(--font-num); font-weight: 600; font-size: 13px; letter-spacing: .04em;
+  flex: 1; min-width: 0; border: 0; border-radius: 9px; padding: 5px 2px; background: transparent; color: var(--panel-muted);
+  font-family: var(--font-num); font-weight: 600; font-size: 13px; letter-spacing: .04em; line-height: 1.2;
+  display: flex; flex-direction: column; align-items: center;
 }
+.cur-seg button small { font-family: var(--font-body); font-size: 11px; font-weight: 500; letter-spacing: 0; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .cur-seg button[aria-pressed="true"] { background: var(--gold); color: #1F2A12; }
 .amount-row { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; min-width: 0; }
 .amount { font-size: clamp(34px, 11vw, 48px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; text-align: right; }
@@ -242,7 +245,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     <section class="view" id="view-calc" role="tabpanel">
       <div class="calc-scroll">
         <div class="panel">
-          <div class="cur-seg" id="curSeg" role="group" aria-label="입력 통화"></div>
+          <div class="seg-label" id="segLabel">입력할 돈 (눌러서 바꾸기)</div>
+          <div class="cur-seg" id="curSeg" role="group" aria-labelledby="segLabel"></div>
           <div class="amount-row">
             <div class="amount num" id="amount" aria-live="polite">0</div>
             <div class="amount-sfx" id="amountSfx"></div>
@@ -437,13 +441,14 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
   var prefs = Object.assign({ country: "VN", input: "VND", amount: "", manual: {}, fee: 0, people: 1, tab: "calc", extras: ["USD"] }, saved);
   // v2: the main screen shows only KRW and USD beside the trip's currency by default.
   if (!(saved.v >= 2)) { prefs.extras = ["USD"]; prefs.v = 2; }
-  // Every launch starts from 0; only settings carry over.
+  // Every launch starts from 0 in the trip's currency; only settings carry over.
   prefs.amount = "";
   prefs.origin = null;
   if (!prefs.manual || typeof prefs.manual !== "object") prefs.manual = {};
   if (!Array.isArray(prefs.extras)) prefs.extras = ["USD"];
   prefs.extras = prefs.extras.filter(function (c) { return CUR[c] && c !== "KRW"; }).slice(0, 3);
   if (!countryById(prefs.country)) prefs.country = "VN";
+  prefs.input = countryById(prefs.country).cur;
 
   var rates = store.get("vnfx.rates", null);
   if (!rates || !rates.krwPer) rates = { krwPer: {}, at: null, fetchedAt: null, source: "default" };
@@ -543,7 +548,9 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     seg.innerHTML = "";
     list.forEach(function (code) {
       var b = document.createElement("button");
-      b.type = "button"; b.textContent = code;
+      b.type = "button";
+      b.textContent = code;
+      var sm = document.createElement("small"); sm.textContent = CUR[code].sfx; b.appendChild(sm);
       b.setAttribute("aria-pressed", String(code === c));
       b.setAttribute("aria-label", CUR[code].name + "로 입력");
       b.addEventListener("click", function () { switchInput(code); });
@@ -570,12 +577,15 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     var res = $("results");
     res.innerHTML = "";
     var targets = list.filter(function (x) { return x !== c; });
-    targets.sort(function (a, b) { return (b === "KRW") - (a === "KRW"); });
+    // Typing in 원 makes the trip's currency the big answer; otherwise 원 is, followed by the trip's currency.
+    var big = c === "KRW" ? local() : "KRW";
+    var rank = function (x) { return x === big ? 0 : x === local() ? 1 : 2; };
+    targets.sort(function (a, b) { return rank(a) - rank(b); });
     targets.forEach(function (code) {
       var out = convert(v, c, code);
       var b = document.createElement("button");
       b.type = "button";
-      b.className = "res" + (code === "KRW" ? " primary" : "");
+      b.className = "res" + (code === big ? " primary" : "");
       b.setAttribute("aria-label", CUR[code].name + " " + fmtCur(out, code) + CUR[code].sfx + ", 눌러서 이 통화로 입력");
       b.innerHTML = '<span class="code"></span><span class="val num"></span><span class="name"></span>';
       b.querySelector(".code").textContent = code;
