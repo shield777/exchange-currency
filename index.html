@@ -117,6 +117,25 @@ header.top { display: flex; align-items: center; justify-content: space-between;
 .amount-hint { color: var(--gold); margin-left: auto; }
 .rate-line { color: var(--panel-muted); }
 
+/* Memory slots */
+.mem { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.slot { position: relative; min-width: 0; }
+.slot .m-main {
+  width: 100%; min-height: 48px; border: 1px dashed var(--line); background: transparent; border-radius: 12px; padding: 5px 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; line-height: 1.15;
+}
+.slot.filled .m-main { border-style: solid; background: var(--surface); }
+.slot .m-main:active { background: var(--key-strong); }
+.m-main b { font-family: var(--font-num); font-size: 11px; color: var(--accent); letter-spacing: .04em; }
+.m-main span { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot:not(.filled) .m-main span { color: var(--muted); font-family: var(--font-body); font-size: 12px; font-weight: 500; }
+.m-main small { font-size: 10px; color: var(--muted); }
+.slot .m-del {
+  position: absolute; top: -6px; right: -4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
+  background: var(--key-strong); color: var(--muted); font-size: 12px; line-height: 22px;
+}
+.slot .m-del::after { content: ""; position: absolute; inset: -8px; }
+
 .bills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .bills::-webkit-scrollbar { display: none; }
 .bills button {
@@ -249,8 +268,9 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
           </div>
           <div class="panel-foot"><span class="rate-line num" id="rateLine"></span><span class="amount-hint num" id="amountHint"></span></div>
         </div>
-        <div class="bills" id="bills" aria-label="지폐 더하기"></div>
         <div class="results" id="results"></div>
+        <div class="mem" id="mem" role="group" aria-label="메모리"></div>
+        <div class="bills" id="bills" aria-label="지폐 더하기"></div>
       </div>
       <div class="keypad" id="keypad">
         <button type="button" class="fn" data-k="clear" aria-label="전체 지우기">C</button>
@@ -438,6 +458,9 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
   if (!prefs.manual || typeof prefs.manual !== "object") prefs.manual = {};
   if (!Array.isArray(prefs.extras)) prefs.extras = ["USD"];
   prefs.extras = prefs.extras.filter(function (c) { return CUR[c] && c !== "KRW"; }).slice(0, 3);
+  // Five memory slots, each { cur, value } or null; they survive restarts.
+  if (!Array.isArray(prefs.mem)) prefs.mem = [];
+  prefs.mem = [0, 1, 2, 3, 4].map(function (i) { var m = prefs.mem[i]; return m && CUR[m.cur] && m.value > 0 ? m : null; });
   if (!countryById(prefs.country)) prefs.country = "VN";
   prefs.input = countryById(prefs.country).cur;
 
@@ -585,6 +608,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     var dk = $("dotKey"), dot = CUR[c].dec > 0;
     dk.dataset.k = dot ? "." : "00"; dk.textContent = dot ? "." : "00";
 
+    renderMem();
+
     var bills = $("bills");
     bills.innerHTML = "";
     var chips = CUR[c].chips || [];
@@ -635,6 +660,60 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     if (prefs.manual[shown] > 0) tags.push("직접 입력");
     if (Number(prefs.fee)) tags.push("수수료 " + prefs.fee + "%");
     tags.forEach(function (t) { var s = document.createElement("span"); s.className = "badge"; s.textContent = t; line.appendChild(s); });
+  }
+
+  function memText(m) {
+    if (m.cur === "KRW") return m.value >= 10000 ? manWon(m.value) : fmtCur(m.value) + "원";
+    return shorthand(m.value, m.cur) || fmtCur(m.value, m.cur);
+  }
+  // 을/를 by whether the word ends in a final consonant: 동을, 달러를.
+  function eulReul(word) { var code = word.charCodeAt(word.length - 1) - 0xAC00; return code >= 0 && code < 11172 && code % 28 ? "을" : "를"; }
+  function roundFor(v, c) { return CUR[c].dec ? Math.round(v * 100) / 100 : Math.round(v); }
+
+  function renderMem() {
+    var box = $("mem");
+    box.innerHTML = "";
+    prefs.mem.forEach(function (m, i) {
+      var name = "M" + (i + 1);
+      var slot = document.createElement("div");
+      slot.className = "slot" + (m ? " filled" : "");
+      var main = document.createElement("button");
+      main.type = "button"; main.className = "m-main";
+      main.innerHTML = "<b></b><span></span><small></small>";
+      main.querySelector("b").textContent = name;
+      main.querySelector("span").textContent = m ? memText(m) : "+ 저장";
+      main.querySelector("small").textContent = m ? m.cur : "";
+      main.setAttribute("aria-label", m ? name + " " + fmtCur(m.value, m.cur) + CUR[m.cur].sfx + ", 눌러서 불러오기" : name + " 비어 있음, 눌러서 지금 금액 저장");
+      main.addEventListener("click", function () { m ? recallMem(i) : saveMem(i); });
+      slot.appendChild(main);
+      if (m) {
+        var del = document.createElement("button");
+        del.type = "button"; del.className = "m-del"; del.textContent = "✕";
+        del.setAttribute("aria-label", name + " 지우기");
+        del.addEventListener("click", function () { prefs.mem[i] = null; savePrefs(); renderMem(); toast(name + "을 비웠어요"); });
+        slot.appendChild(del);
+      }
+      box.appendChild(slot);
+    });
+  }
+
+  function saveMem(i) {
+    var c = prefs.input, v = roundFor(amountValue(), c);
+    if (!(v > 0)) { toast("저장할 금액을 먼저 입력하세요"); return; }
+    prefs.mem[i] = { cur: c, value: v };
+    savePrefs(); renderMem();
+    toast("M" + (i + 1) + "에 " + fmtCur(v, c) + CUR[c].sfx + eulReul(CUR[c].sfx) + " 저장했어요");
+  }
+
+  // Recalls into the current currency: after an operator it joins the expression, otherwise it replaces the amount.
+  function recallMem(i) {
+    var m = prefs.mem[i], c = prefs.input;
+    var x = roundFor(convert(m.value, m.cur, c), c);
+    var s = prefs.amount;
+    s = s && isOp(s.slice(-1)) ? s + x : String(x);
+    if (s.length > 40) { toast("식이 너무 길어요"); return; }
+    setAmount(s);
+    if (m.cur !== c) toast("M" + (i + 1) + " " + fmtCur(m.value, m.cur) + CUR[m.cur].sfx + " → " + fmtCur(x, c) + CUR[c].sfx);
   }
 
   function renderBills() {
