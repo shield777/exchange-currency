@@ -236,6 +236,26 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 @media (prefers-reduced-motion: reduce) { .toast, .keypad button { transition: none; } .status.loading::before { animation: none; } }
 @media (max-height: 700px) { .keypad { grid-auto-rows: 44px; gap: 6px; } .res { padding-block: 7px; } }
+/* Phone turned sideways: amount and results on the left, keypad filling the right. */
+@media (orientation: landscape) and (max-height: 600px) {
+  .app { max-width: none; }
+  header.top { padding-block: 4px; }
+  .country-btn { font-size: 17px; }
+  #view-calc { flex-direction: row; gap: 14px; }
+  .calc-scroll { flex: 1 1 56%; padding-bottom: 8px; gap: 8px; }
+  .panel { padding: 8px 12px; gap: 4px; }
+  .seg-label { display: none; }
+  .amount { font-size: clamp(26px, 9vh, 40px); }
+  .res { padding-block: 6px; }
+  .res .val { font-size: clamp(22px, 8vh, 32px); }
+  .keypad { flex: 1 1 44%; max-width: 440px; grid-template-rows: repeat(5, minmax(0, 1fr)); grid-auto-rows: unset; gap: 6px; padding-block: 0 8px; }
+  .keypad button { font-size: 20px; border-radius: 12px; }
+  .keypad .op, .keypad .tall { font-size: 22px; }
+  nav.tabs { padding-block: 2px 4px; }
+  nav.tabs button { flex-direction: row; justify-content: center; gap: 6px; padding: 4px 0; }
+  nav.tabs button svg { width: 18px; height: 18px; }
+  .page { max-width: 720px; margin-inline: auto; width: 100%; }
+}
 </style>
 </head>
 <body>

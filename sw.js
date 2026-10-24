@@ -1,6 +1,6 @@
 // Keeps the app itself available offline. Exchange rates are not cached here;
 // the page stores the last downloaded rates in localStorage.
-var CACHE = "vnfx-v12";
+var CACHE = "vnfx-v13";
 var SHELL = ["./", "index.html", "manifest.webmanifest?v=3", "icon-180-v3.png", "icon-192-v3.png", "icon-512-v3.png"];
 
 self.addEventListener("install", function (e) {
