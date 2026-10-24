@@ -136,28 +136,21 @@ header.top { display: flex; align-items: center; justify-content: space-between;
 }
 .slot .m-del::after { content: ""; position: absolute; inset: -8px; }
 
-.bills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
-.bills::-webkit-scrollbar { display: none; }
-.bills button {
-  flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
-  padding: 6px 12px; font-family: var(--font-num); font-weight: 600; font-size: 13px;
-}
-.bills button:active { background: var(--key-strong); }
 
 /* Results */
 .results { background: var(--surface); border-radius: 16px; border: 1px solid var(--line); overflow: hidden; }
 .res {
   width: 100%; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0 12px; line-height: 1.25;
-  border: 0; background: transparent; text-align: left; padding: 8px 14px; border-top: 1px solid var(--line);
+  border: 0; background: transparent; text-align: left; padding: 10px 14px; border-top: 1px solid var(--line);
 }
 .res:first-child { border-top: 0; }
 .res:active { background: var(--key); }
-.res .code { font-family: var(--font-num); font-weight: 700; font-size: 13px; letter-spacing: .05em; color: var(--accent); }
-.res .name { font-size: 12px; color: var(--muted); grid-column: 1; }
-.res .val { grid-column: 2; grid-row: 1 / span 2; text-align: right; font-size: 20px; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
-.res .val small { font-size: 13px; color: var(--muted); font-weight: 500; margin-left: 3px; }
-.res.primary .val { font-size: 28px; font-weight: 700; }
-.res .sub { display: block; font-size: 12px; color: var(--muted); font-weight: 500; }
+.res .code { font-family: var(--font-num); font-weight: 700; font-size: 15px; letter-spacing: .05em; color: var(--accent); }
+.res .name { font-size: 13px; color: var(--muted); grid-column: 1; }
+.res .val { grid-column: 2; grid-row: 1 / span 2; text-align: right; font-size: 28px; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.res .val small { font-size: 16px; color: var(--muted); font-weight: 500; margin-left: 3px; }
+.res.primary .val { font-size: clamp(30px, 9.5vw, 40px); font-weight: 700; }
+.res .sub { display: block; font-size: 13px; color: var(--muted); font-weight: 500; }
 
 .badge { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 1px 6px; background: var(--warn-bg); color: var(--warn-ink); margin-left: 4px; }
 
@@ -270,7 +263,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
         </div>
         <div class="results" id="results"></div>
         <div class="mem" id="mem" role="group" aria-label="메모리"></div>
-        <div class="bills" id="bills" aria-label="지폐 더하기"></div>
       </div>
       <div class="keypad" id="keypad">
         <button type="button" class="fn" data-k="clear" aria-label="전체 지우기">C</button>
@@ -360,27 +352,27 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
 (function () {
   "use strict";
 
-  // unit: how much is quoted against KRW ("100엔 = 960원"). notes: bills for the table, chips: quick-add buttons.
+  // unit: how much is quoted against KRW ("100엔 = 960원"). notes: bills for the table.
   // short: local price shorthand, e.g. VND "45k", IDR "50rb".
   var CUR = {
     KRW: { name: "한국 원", sfx: "원", unit: 1, dec: 0 },
     VND: { name: "베트남 동", sfx: "동", unit: 10000, dec: 0, short: "k",
-      notes: [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000], chips: [10000, 20000, 50000, 100000, 200000, 500000] },
-    JPY: { name: "일본 엔", sfx: "엔", unit: 100, dec: 0, notes: [1000, 5000, 10000], chips: [100, 500, 1000, 5000, 10000] },
-    THB: { name: "태국 바트", sfx: "바트", unit: 1, dec: 2, notes: [20, 50, 100, 500, 1000], chips: [10, 20, 50, 100, 500, 1000] },
-    CNY: { name: "중국 위안", sfx: "위안", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] },
-    TWD: { name: "대만 달러", sfx: "대만달러", unit: 1, dec: 0, notes: [100, 200, 500, 1000, 2000], chips: [10, 50, 100, 500, 1000] },
-    HKD: { name: "홍콩 달러", sfx: "홍콩달러", unit: 1, dec: 2, notes: [10, 20, 50, 100, 500, 1000], chips: [10, 20, 50, 100, 500] },
-    PHP: { name: "필리핀 페소", sfx: "페소", unit: 1, dec: 2, notes: [50, 100, 200, 500, 1000], chips: [20, 50, 100, 200, 500, 1000] },
-    SGD: { name: "싱가포르 달러", sfx: "싱가포르달러", unit: 1, dec: 2, notes: [2, 5, 10, 50, 100], chips: [1, 2, 5, 10, 50, 100] },
-    MYR: { name: "말레이시아 링깃", sfx: "링깃", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] },
+      notes: [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000] },
+    JPY: { name: "일본 엔", sfx: "엔", unit: 100, dec: 0, notes: [1000, 5000, 10000] },
+    THB: { name: "태국 바트", sfx: "바트", unit: 1, dec: 2, notes: [20, 50, 100, 500, 1000] },
+    CNY: { name: "중국 위안", sfx: "위안", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100] },
+    TWD: { name: "대만 달러", sfx: "대만달러", unit: 1, dec: 0, notes: [100, 200, 500, 1000, 2000] },
+    HKD: { name: "홍콩 달러", sfx: "홍콩달러", unit: 1, dec: 2, notes: [10, 20, 50, 100, 500, 1000] },
+    PHP: { name: "필리핀 페소", sfx: "페소", unit: 1, dec: 2, notes: [50, 100, 200, 500, 1000] },
+    SGD: { name: "싱가포르 달러", sfx: "싱가포르달러", unit: 1, dec: 2, notes: [2, 5, 10, 50, 100] },
+    MYR: { name: "말레이시아 링깃", sfx: "링깃", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100] },
     IDR: { name: "인도네시아 루피아", sfx: "루피아", unit: 10000, dec: 0, short: "rb",
-      notes: [1000, 2000, 5000, 10000, 20000, 50000, 100000], chips: [5000, 10000, 20000, 50000, 100000] },
-    USD: { name: "미국 달러", sfx: "달러", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] },
-    EUR: { name: "유로", sfx: "유로", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100, 200], chips: [1, 5, 10, 20, 50, 100] },
-    GBP: { name: "영국 파운드", sfx: "파운드", unit: 1, dec: 2, notes: [5, 10, 20, 50], chips: [1, 5, 10, 20, 50] },
-    AUD: { name: "호주 달러", sfx: "호주달러", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] },
-    CAD: { name: "캐나다 달러", sfx: "캐나다달러", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100], chips: [1, 5, 10, 20, 50, 100] }
+      notes: [1000, 2000, 5000, 10000, 20000, 50000, 100000] },
+    USD: { name: "미국 달러", sfx: "달러", unit: 1, dec: 2, notes: [1, 5, 10, 20, 50, 100] },
+    EUR: { name: "유로", sfx: "유로", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100, 200] },
+    GBP: { name: "영국 파운드", sfx: "파운드", unit: 1, dec: 2, notes: [5, 10, 20, 50] },
+    AUD: { name: "호주 달러", sfx: "호주달러", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100] },
+    CAD: { name: "캐나다 달러", sfx: "캐나다달러", unit: 1, dec: 2, notes: [5, 10, 20, 50, 100] }
   };
   var FOREIGN = Object.keys(CUR).filter(function (c) { return c !== "KRW"; });
   // Fallback only, used before the first successful download (KRW per 1 unit, approx. Sept 2026).
@@ -558,7 +550,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     if (CUR[c].short === "rb") return v >= 1e6 ? fmt(v / 1e6, 2) + "jt" : v >= 1000 ? fmt(v / 1000, 1) + "rb" : "";
     return "";
   }
-  function chipLabel(n, c) { return "+" + (CUR[c].short === "k" && n >= 1000 ? fmt(n / 1000, 0) + "k" : CUR[c].short === "rb" && n >= 1000 ? fmt(n / 1000, 0) + "rb" : fmt(n, 0)); }
   function rateText(c) { var v = krwPer(c) * CUR[c].unit; return fmt(v, v < 100 ? 2 : v < 1000 ? 1 : 0); }
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function fmtDate(ms) { var d = new Date(ms); return (d.getMonth() + 1) + "/" + d.getDate() + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
@@ -610,23 +601,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
 
     renderMem();
 
-    var bills = $("bills");
-    bills.innerHTML = "";
-    var chips = CUR[c].chips || [];
-    bills.hidden = !chips.length;
-    chips.forEach(function (n) {
-      var b = document.createElement("button");
-      b.type = "button"; b.textContent = chipLabel(n, c);
-      b.setAttribute("aria-label", fmt(n, 0) + CUR[c].sfx + " 더하기");
-      b.addEventListener("click", function () {
-        var s = prefs.amount;
-        if (s.slice(-1) === ".") s = s.slice(0, -1);
-        s = !s || s === "-" ? String(n) : s + (isOp(s.slice(-1)) ? "" : "+") + n;
-        if (s.length <= 40) setAmount(s);
-      });
-      bills.appendChild(b);
-    });
-
     var res = $("results");
     res.innerHTML = "";
     var targets = list.filter(function (x) { return x !== c; });
@@ -664,6 +638,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
 
   function memText(m) {
     if (m.cur === "KRW") return m.value >= 10000 ? manWon(m.value) : fmtCur(m.value) + "원";
+    var sh = CUR[m.cur].short;
+    if (sh && m.value >= 1e6) return fmt(m.value / 1e6, 1) + (sh === "k" ? "tr" : "jt");
     return shorthand(m.value, m.cur) || fmtCur(m.value, m.cur);
   }
   // 을/를 by whether the word ends in a final consonant: 동을, 달러를.
