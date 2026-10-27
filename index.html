@@ -614,9 +614,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
     var sh = shorthand(v, c);
     if (hasOp(prefs.amount)) $("amountHint").textContent = isFinite(evaluate(prefs.amount)) ? "= " + fmtCur(v, c) + CUR[c].sfx + (sh ? " · " + sh : "") : "0으로 나눌 수 없어요";
     else $("amountHint").textContent = sh ? "= " + sh : "";
-    // Currencies without decimals get 00 in the dot's place.
-    var dk = $("dotKey"), dot = CUR[c].dec > 0;
-    dk.dataset.k = dot ? "." : "00"; dk.textContent = dot ? "." : "00";
 
     renderMem();
 
@@ -859,14 +856,14 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
 
   // origin remembers what was last typed, so hopping between currencies never drifts by rounding.
   function setAmount(str, keepOrigin) {
-    if (CUR[prefs.input].dec === 0 && /^-?\d*\.\d*$/.test(str)) str = String(Math.round(parseFloat(str)) || "");
     prefs.amount = str;
     if (!keepOrigin) prefs.origin = { cur: prefs.input, amount: str };
     savePrefs(); renderCalc();
   }
 
   function press(k) {
-    var s = prefs.amount, dec = CUR[prefs.input].dec;
+    // Any number may carry up to 4 decimals, so factors like × 0.7 or × 1.075 work in every currency.
+    var s = prefs.amount, dec = 4;
     var cur = lastOperand(s), head = s.slice(0, s.length - cur.length);
     if (k === "=") { equals(); return; }
     if (k === "clear") s = "";
@@ -877,7 +874,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); }
       if (s.length >= 40) return;
       s += k;
     }
-    else if (k === ".") { if (!dec || cur.indexOf(".") >= 0) return; s = head + (cur || "0") + "."; }
+    else if (k === ".") { if (cur.indexOf(".") >= 0) return; s = head + (cur || "0") + "."; }
     else {
       if ((k === "000" || k === "00") && (!cur || cur === "0")) return;
       var di = cur.indexOf(".");
